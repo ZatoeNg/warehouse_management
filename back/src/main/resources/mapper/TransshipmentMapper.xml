@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.example.mapper.TransshipmentMapper">
+    <insert id="saveTrans">
+        INSERT INTO trans_list VALUES (
+        NULL,#{trans.sourceProductId},#{trans.sourceStoreId},#{trans.targetStoreId}
+        ,#{trans.productName},#{trans.productName}
+        ,#{trans.transNum},0,#{trans.createBy},now()
+        )
+    </insert>
+
+    <update id="setTransState">
+        UPDATE trans_list
+        SET trans_state =1
+        WHERE transshipment_id = #{trans.transshipmentId}
+    </update>
+
+    <select id="CheckStoreProduct" resultType="org.example.beans.Product">
+        SELECT * FROM product
+        WHERE product_num=#{transshipment.targetProductNum}
+        AND store_id = #{transshipment.targetStoreId}
+    </select>
+
+    <select id="findTransMapperRowCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM trans_list
+        <where>
+            <if test="trans.targetStoreId !=null ">
+                AND target_store_id =#{trans.targetStoreId}
+            </if>
+            <if test="trans.sourceStoreId != null">
+                AND source_store_id =#{trans.sourceStoreId}
+            </if>
+            <if test="trans.targetProductName != null and trans.targetProductName != ''">
+                AND target_product_name like concat('%',#{trans.targetProductName},'%')
+            </if>
+            <if test="trans.sourceProductName != null and trans.sourceProductName != ''">
+                AND source_product_name like concat('%',#{trans.sourceProductName},'%')
+            </if>
+            <if test="trans.createName != null and trans.createName != ''">
+                AND create_name like concat('%',#{trans.createName},'%')
+            </if>
+        </where>
+    </select>
+    <select id="findTransPage" resultType="org.example.beans.Transshipment">
+        SELECT t1.*,t2.user_code
+        FROM trans_list t1,user_info t2
+        WHERE t2.user_id = t1.trans_by
+        <if test="trans.targetStoreId !=null ">
+            AND t1.target_store_id =#{trans.targetStoreId}
+        </if>
+        <if test="trans.sourceStoreId != null">
+            AND t1.source_store_id =#{trans.sourceStoreId}
+        </if>
+        <if test="trans.targetProductName != null and trans.targetProductName != ''">
+            AND t1.target_product_name like concat('%',#{trans.targetProductName},'%')
+        </if>
+        <if test="trans.sourceProductName != null and trans.sourceProductName != ''">
+            AND t1.source_product_name like concat('%',#{trans.sourceProductName},'%')
+        </if>
+        <if test="trans.createName != null and trans.createName != ''">
+            AND t1.create_name like concat('%',#{trans.createName},'%')
+        </if>
+        order by trans_date desc
+        limit #{page.limitIndex},#{page.pageSize}
+    </select>
+
+    <select id="findStoreNameById" resultType="java.lang.String">
+        SELECT DISTINCT store_name FROM store
+        WHERE store_id = #{sourceStoreId}
+    </select>
+
+    <select id="findProductById" resultType="org.example.beans.Product">
+        SELECT * FROM product
+        WHERE product_id = #{sourceProductId}
+    </select>
+
+    <select id="findTransById" resultType="org.example.beans.Transshipment">
+        SELECT t1.*,t2.store_id,t2.sale_price FROM trans_list t1,product t2
+        WHERE transshipment_id=#{trans.transshipmentId}
+        AND source_store_id = store_id
+        AND product_name= #{trans.targetProductName}
+    </select>
+
+    <select id="findTransByIds" resultType="org.example.beans.Transshipment">
+        SELECT t1.target_store_id,t2.product_id,t1.trans_num,t2.store_id FROM trans_list t1,product t2
+        WHERE transshipment_id=#{trans.transshipmentId}
+        AND target_store_id = store_id
+        AND product_name= #{trans.targetProductName}
+    </select>
+</mapper>

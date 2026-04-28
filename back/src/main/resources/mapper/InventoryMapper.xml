@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.InventoryMapper">
+    <insert id="addInv">
+        INSERT INTO inventory
+        values(null,#{inv.storeId},#{inv.productId},#{inv.sourceNum},null,null,0,
+               #{inv.createBy},null,now()
+        )
+    </insert>
+    <delete id="deleteInv">
+        DELETE FROM inventory WHERE inventory_id = #{inventoryId}
+    </delete>
+
+    <select id="findInvRowCount" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM inventory t1, product t2,store t3
+		WHERE t1.product_id = t2.product_id
+		<if test="inv.storeId != null">
+			AND t1.store_id = #{inv.storeId}
+		</if>
+		<if test="inv.productName != null and inv.productName != ''">
+			AND t2.product_name like concat('%',#{inv.productName},'%')
+		</if>
+		<if test="inv.inventoryState != null and inv.inventoryState != ''">
+			AND t1.inventory_state = #{inv.inventoryState}
+		</if>
+	</select>
+
+	<select id="findInvPage" resultType="org.example.beans.Inventory">
+        SELECT t1.*,t2.product_name,t3.store_name,inventoryCode.user_code AS userCode,createCode.user_code AS createUserCode
+        FROM inventory t1
+        JOIN product t2 ON t1.product_id = t2.product_id
+        JOIN store t3 ON t1.store_id = t3.store_id
+        LEFT JOIN user_info inventoryCode ON t1.inventory_by = inventoryCode.user_id
+        LEFT JOIN user_info createCode ON t1.create_by = createCode.user_id
+        <where>
+            <if test="inv.storeId != null">
+                AND t1.store_id = #{inv.storeId}
+            </if>
+            <if test="inv.productName != null and inv.productName != ''">
+                AND t2.product_name like concat('%',#{inv.productName},'%')
+            </if>
+            <if test="inv.inventoryState != null and inv.inventoryState != ''">
+                AND t1.inventory_state = #{inv.inventoryState}
+            </if>
+        </where>
+        order by t1.create_time desc
+        LIMIT #{page.limitIndex},#{page.pageSize}
+    </select>
+
+    <update id="setNumById">
+        UPDATE inventory SET
+        inventory_num=#{inv.inventoryNum},inventory_by=#{inv.inventoryBy}
+        ,inventory_state=#{inv.inventoryState},inventory_time=now()
+        WHERE inventory_id=#{inv.inventoryId}
+    </update>
+
+    <update id="setProductInventById">
+        UPDATE product
+        SET product_invent=#{inv.inventoryNum},update_time=now(),update_by=#{inv.createBy}
+        WHERE product_id = #{inv.productId}
+    </update>
+</mapper>

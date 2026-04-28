@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.example.mapper.SupplyMapper">
+
+    <select id="findAllSupply" resultType="org.example.beans.Supply">
+        select * from supply
+        WHERE is_delete = 0
+    </select>
+
+    <select id="findSupplyRowCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM supply
+        <where>
+            <if test="1">
+                AND is_delete = 0
+            </if>
+            <if test="supply.supplyName != null and supply.supplyName != ''">
+                AND supply_name = #{supply.supplyName}
+            </if>
+            <if test="supply.phone != null and supply.phone != ''">
+                AND phone = #{supply.phone}
+            </if>
+            <if test="supply.concat != null and supply.concat != ''">
+                AND concat = #{supply.concat}
+            </if>
+        </where>
+    </select>
+
+    <select id="findSupplyPage" resultType="org.example.beans.Supply">
+        SELECT * FROM supply
+        <where>
+            <if test="1">
+                AND is_delete = 0
+            </if>
+            <if test="supply.supplyName != null and supply.supplyName != ''">
+                AND supply_name = #{supply.supplyName}
+            </if>
+            <if test="supply.phone != null and supply.phone != ''">
+                AND phone = #{supply.phone}
+            </if>
+            <if test="supply.concat != null and supply.concat != ''">
+                AND concat = #{supply.concat}
+            </if>
+        </where>
+        order by supply_id desc
+        limit #{page.limitIndex},#{page.pageSize}
+    </select>
+
+    <update id="updateSupply">
+        UPDATE supply SET
+        supply_num = #{supply.supplyNum},supply_name =#{supply.supplyName}
+        ,supply_introduce=#{supply.supplyIntroduce},concat=#{supply.concat}
+        ,phone=#{supply.phone},address=#{supply.address}
+        where supply_id = #{supply.supplyId}
+    </update>
+
+
+    <select id="supplyNumCheckByNum" resultType="org.example.beans.Store">
+        SELECT * FROM supply WHERE supply_num = #{supplyNum}
+    </select>
+
+    <insert id="addSupply">
+        insert into supply VALUES (null,#{supply.supplyNum},#{supply.supplyName}
+        ,#{supply.supplyIntroduce},#{supply.concat},#{supply.phone},#{supply.address},0)
+    </insert>
+
+    <update id="deleteSupplyByNum">
+        update supply set is_delete = 1
+        where supply_num = #{supplyNum}
+    </update>
+</mapper>

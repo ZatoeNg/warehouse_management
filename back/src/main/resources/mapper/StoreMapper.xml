@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.StoreMapper">
+    <insert id="storeAdd">
+        INSERT INTO store VALUES(
+             null,#{storeName},#{storeNum},#{storeAddress},#{concat},#{phone}
+        )
+    </insert>
+
+    <update id="updateStore">
+        UPDATE store SET store_id = #{store.storeId}
+        ,store_name = #{store.storeName}
+        ,store_num = #{store.storeNum}
+        ,store_address = #{store.storeAddress}
+        ,concat = #{store.concat}
+        ,phone = #{store.phone}
+        WHERE store_num = #{store.storeNum}
+    </update>
+
+    <delete id="deleteStoreById">
+        DELETE FROM store WHERE store_id = #{storeId}
+    </delete>
+
+
+    <select id="findAllStore" resultType="store">
+    SELECT * FROM store
+  </select>
+
+  <select id="findStoreCount" resultType="org.example.vo.StoreCountVo">
+    SELECT t1.store_id,t1.store_name,ifnull(sum(product_invent),0) totalInvent
+    FROM store t1,product t2
+    WHERE t1.store_id = t2.store_id
+    group by t1.store_id,t1.store_name
+  </select>
+
+  <select id="getStoreByPage" resultType="store">
+    SELECT * FROM store
+   <where>
+       <if test="store.storeName != null and store.storeName != ''">
+          and store_name = #{store.storeName}
+       </if>
+       <if test="store.storeAddress != null and store.storeAddress != ''">
+          and store_address = #{store.storeAddress}
+       </if>
+       <if test="store.concat != null and store.concat != ''">
+           and concat = #{store.concat}
+       </if>
+       <if test="store.phone != null and store.phone != ''">
+           and phone = #{store.phone}
+       </if>
+   </where>
+    order by store_id desc
+    LIMIT #{page.limitIndex},#{page.pageSize}
+  </select>
+
+    <select id="getStoreRowCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM store
+        <where>
+            <if test="store.storeName != null and store.storeName != ''">
+                and store_name = #{store.storeName}
+            </if>
+            <if test="store.storeAddress != null and store.storeAddress != ''">
+                and store_address = #{store.storeAddress}
+            </if>
+            <if test="store.concat != null and store.concat != ''">
+                and concat = #{store.concat}
+            </if>
+            <if test="store.phone != null and store.phone != ''">
+                and phone = #{store.phone}
+            </if>
+        </where>
+    </select>
+
+    <select id="storeNumCheckByNum" resultType="store">
+        SELECT * FROM store WHERE store_num = #{storeNum}
+    </select>
+</mapper>

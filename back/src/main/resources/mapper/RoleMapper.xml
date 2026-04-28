@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.RoleMapper">
+
+  <select id="getAllRole" resultType="role">
+    SELECT * FROM role
+    WHERE role_state = 1
+  </select>
+
+  <select id="geUserRoleByUid" resultType="role">
+    SELECT t2.* FROM user_role t1,role t2
+    WHERE t1.role_id = t2.role_id
+    AND t2.role_state = 1
+    AND t1.user_id = #{userId}
+
+  </select>
+
+  <select id="getRoleIdByName" resultType="java.lang.Integer">
+    SELECT role_id FROM role
+    WHERE role_name =#{roleName}
+  </select>
+
+<!--      查询角色行数的方法-->
+  <select id="getRoleRowCount" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM role
+    <where>
+      <if test="roleName != null and roleName != ''">
+        and role_name like concat('%',#{roleName},'%')
+      </if>
+      <if test="roleCode != null and roleCode != ''">
+        and role_code like concat('%',#{roleCode},'%')
+      </if>
+      <if test="roleState != null and roleState != ''">
+        and role_state =#{roleState}
+      </if>
+    </where>
+  </select>
+
+<!--  分页查询角色-->
+  <select id="getRolePage" resultType="org.example.beans.Role">
+    SELECT t1.*,t2.user_code getCode
+    FROM role t1,user_info t2
+    WHERE t1.create_by =t2.user_id
+    <if test="role.roleName != null and role.roleName != ''">
+      and t1.role_name like concat('%',#{role.roleName},'%')
+    </if>
+    <if test="role.roleCode != null and role.roleCode != ''">
+      and t1.role_code like concat('%',#{role.roleCode},'%')
+    </if>
+    <if test="role.roleState != null and role.roleState != ''">
+      and t1.role_state =#{role.roleState}
+    </if>
+    order by t1.create_time desc
+    limit #{page.limitIndex},#{page.pageSize}
+  </select>
+
+  <select id="getRoleByNameOrCode" resultType="org.example.beans.Role">
+    SELECT * FROM role
+    WHERE role_name =#{param1}
+    OR role_code =#{param2}
+  </select>
+
+  <insert id="insertRole">
+    INSERT INTO role VALUES (
+      null,#{roleName},#{roleDesc},#{roleCode},0,#{createBy},now(),null,null
+    )
+  </insert>
+
+  <update id="setRoleStateByRid">
+    UPDATE role SET role_State = #{param2}
+    WHERE role_id =#{param1}
+  </update>
+
+  <delete id="removRoleById">
+    DELETE FROM role
+    WHERE role_id = #{roleId}
+  </delete>
+
+<!--  根据id修改角色描述-->
+  <update id="setDescByRid">
+    UPDATE role
+    SET role_desc = #{roleDesc},update_by=#{updateBy},update_time=now()
+    WHERE role_id =#{roleId}
+  </update>
+</mapper>

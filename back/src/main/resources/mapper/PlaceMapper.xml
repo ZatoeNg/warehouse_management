@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.PlaceMapper">
+    <insert id="placeAdd">
+        INSERT INTO place VALUES (null,#{place.placeName},#{place.placeNum},#{place.introduce},0)
+    </insert>
+
+    <select id="findAllPlace" resultType="place">
+    SELECT * FROM place
+    WHERE is_delete =0
+  </select>
+</mapper>

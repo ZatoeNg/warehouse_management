@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.PurchaseMapper">
+
+  <insert id="insertPurchase">
+    INSERT INTO buy_list VALUES (
+      null,#{productId},#{storeId},#{buyNum},#{factBuyNum}
+    ,now(),#{supplyId},#{placeId},#{buyUser},#{phone},0
+    )
+  </insert>
+
+<!--  查询采购单行-->
+  <select id="findPurchaseRowCount" resultType="java.lang.Integer">
+    SELECT count(*) FROM buy_list t1 ,product t2
+    WHERE t1.product_id =t2.product_id
+    <if test="storeId != null">
+      AND t1.store_id=#{storeId}
+    </if>
+    <if test="productName != null and productName != ''">
+      AND t2.product_name like concat('%',#{productName},'%')
+    </if>
+    <if test="buyUser != null and buyUser != ''">
+      AND t1.buy_user like concat('%',#{buyUser},'%')
+    </if>
+    <if test="isIn != null and isIn != ''">
+      AND t1.is_in = #{isIn}
+    </if>
+    <if test="startTime != null and startTime != ''">
+      AND t1.buy_time &gt;= #{startTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      AND t1.buy_time &lt;= #{endTime}
+    </if>
+  </select>
+
+<!--  分页查询-->
+  <select id="findPurchasePage" resultType="org.example.beans.Purchase">
+    SELECT t1.*,t2.product_name,t3.store_name
+    FROM buy_list t1,product t2,store t3
+    WHERE t1.product_id = t2.product_id
+    AND t1.store_id = t3.store_id
+    <if test="purchase.storeId != null">
+      AND t1.store_id=#{purchase.storeId}
+    </if>
+    <if test="purchase.productName != null and purchase.productName != ''">
+      AND t2.product_name like concat('%',#{purchase.productName},'%')
+    </if>
+    <if test="purchase.buyUser != null and purchase.buyUser != ''">
+      AND t1.buy_user like concat('%',#{purchase.buyUser},'%')
+    </if>
+    <if test="purchase.isIn != null and purchase.isIn != ''">
+      AND t1.is_in = #{purchase.isIn}
+    </if>
+    <if test="purchase.startTime != null and purchase.startTime != ''">
+      AND t1.buy_time &gt;= #{purchase.startTime}
+    </if>
+    <if test="purchase.endTime != null and purchase.endTime != ''">
+      AND t1.buy_time &lt;= #{purchase.endTime}
+    </if>
+    order by t1.buy_time desc
+    limit #{page.limitIndex},#{page.pageSize}
+  </select>
+
+<!--      根据id删除采购单-->
+  <delete id="removePurchaseById">
+    DELETE FROM buy_list
+    WHERE buy_id =#{buyId}
+  </delete>
+
+<!--  根据id修改预计采购数量和实际数量-->
+  <update id="setNumById">
+    UPDATE buy_list
+    SET buy_num =#{buyNum},fact_buy_num =#{factBuyNum}
+    WHERE buy_id =#{buyId}
+  </update>
+
+<!--      根据id修改采购单状态为已入库-->
+  <update id="setIsInById">
+    UPDATE buy_list
+    SET is_in =1
+    WHERE buy_id =#{buyId}
+  </update>
+</mapper>

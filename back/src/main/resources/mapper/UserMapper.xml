@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.mapper.UserMapper">
+
+
+	<select id="getUserByCode" resultType="user">
+		SELECT * FROM user_info WHERE user_code = #{userCode}
+		AND is_delete =0
+	</select>
+
+	<select id="getUserRowCount" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM user_info
+		<where>
+			<if test="userCode != null and userCode != ''">
+				AND user_code like concat('%',#{userCode},'%')
+			</if>
+			<if test="userType != null and userType != ''">
+				AND user_type = #{userType}
+			</if>
+			<if test="userState != null and userState != ''">
+				AND user_state = #{userState}
+			</if>
+			AND is_delete = 0
+		</where>
+    </select>
+
+<!--	用户表，两表连接查询，t1是用户表，t2是创建用户的表-->
+<!--	public List<User> getUserByPage(@Param("page") Page page, @Param("user") User user);-->
+	<select id="getUserByPage" resultType="org.example.beans.User">
+		SELECT t1.*,t2.user_code getCode FROM user_info t1 ,user_info t2
+		WHERE t1.create_by = t2.user_id
+		AND t1.is_delete =0
+		<if test="user.userCode != null and user.userCode != ''">
+			AND t1.user_code like concat('%',#{user.userCode},'%')
+		</if>
+		<if test="user.userType != null and user.userType != ''">
+			AND t1.user_type = #{user.userType}
+		</if>
+		<if test="user.userState != null and user.userState != ''">
+			AND t1.user_state = #{user.userState}
+		</if>
+		order by t1.create_time desc
+		LIMIT #{page.limitIndex},#{page.pageSize}
+	</select>
+
+	<insert id="insertUser">
+		INSERT INTO user_info VALUES(
+			null,#{userCode},#{userName},#{userPwd},null,0,0,#{createBy},now(),null,null
+		)
+	</insert>
+
+	<update id="setStateByUid">
+		UPDATE user_info SET user_state =#{param2}
+		WHERE user_id =#{param1}
+	</update>
+
+	<update id="setIsDeleteByUids">
+		UPDATE user_info SET is_delete=1
+		WHERE user_id in
+		<foreach collection="list" open="(" close=")" separator="," item="userId">
+			#{userId}
+		</foreach>
+	</update>
+
+	<update id="setUserNameByUid">
+		UPDATE user_info
+		SET
+		user_name = #{userName},update_by = #{updateBy},update_time = now()
+		WHERE user_id=#{userId}
+	</update>
+
+	<update id="setPwdByUid">
+		UPDATE user_info
+		SET user_pwd =#{param2}
+		WHERE user_id=#{param1}
+	</update>
+    <update id="setDataById">
+		UPDATE user_info
+		SET user_name = #{user.userName}
+		,update_by = #{user.updateBy}
+		,update_time = now()
+		WHERE user_id = #{user.userId}
+	</update>
+</mapper>
